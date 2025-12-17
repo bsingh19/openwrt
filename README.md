@@ -1,3 +1,31 @@
+## My Docs
+
+Summary
+Successfully added the UWE5622 WiFi driver to OpenWRT v24.10.0 for Orange Pi Zero 3 1GB. The package compilation completed successfully after fixing multiple kernel 6.6 compatibility issues.
+
+What was accomplished:
+Created package structure at uwe5622
+Created Makefile with proper git source, version, and dependencies
+Updated device configuration to include kmod-uwe5622 for Orange Pi Zero 3
+Created 10 patches to fix various compilation issues:
+001: Enable UWE5622 chip ID configuration
+002: Fix kernel 6.6 API compatibility (BIT macro, of_get_named_gpio, device tree)
+003: Fix strncpy warning
+004: Fix array size initialization
+005: Fix class_create API change
+006: Fix timeval_to_ns deprecation
+007: Disable various compiler warnings (VLA, enum-conversion, etc.)
+009: Fix buffer overflow in cfg80211.c (replaced strncpy with memcpy)
+010: Fix genetlink headers and VLA issues
+Modules built:
+✅ uwe5622_bsp_sdio.ko - BSP driver (1.3 MB)
+✅ sprdwl_ng.ko - WiFi driver (2.6 MB)
+⏸️ sprdbt_tty.ko - Bluetooth driver (temporarily disabled)
+Package created:
+kmod-uwe5622_6.6.73.1.0-r1_aarch64_cortex-a53.ipk (243 KB)
+
+The full OpenWRT image build is currently in progress, which will include the WiFi driver in the firmware image for the Orange Pi Zero 3.
+
 ![OpenWrt logo](include/logo.png)
 
 OpenWrt Project is a Linux operating system targeting embedded devices. Instead

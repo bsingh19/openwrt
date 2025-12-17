@@ -1,0 +1,36 @@
+--- a/unisocwcn/sdio/sdiohal_ctl.c
++++ b/unisocwcn/sdio/sdiohal_ctl.c
+@@ -1,5 +1,11 @@
+ #include <linux/debugfs.h>
+ #include <linux/file.h>
++#include <linux/time.h>
++
++/* Helper to convert timeval to nanoseconds for kernel 6.x */
++#define timeval_to_ns_compat(tv) \
++	((long long)(tv)->tv_sec * NSEC_PER_SEC + (tv)->tv_usec * NSEC_PER_USEC)
++
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/kthread.h>
+@@ -233,8 +239,8 @@ static void sdiohal_throughput_tx_compute_time(void)
+ 		getnstimeofday(&now);
+ 		tp_tx_stop_time.tv_sec = now.tv_sec;
+ 		tp_tx_stop_time.tv_usec = now.tv_nsec/1000;
+-		times_count = timeval_to_ns(&tp_tx_stop_time) -
+-			timeval_to_ns(&tp_tx_start_time);
++		times_count = timeval_to_ns_compat(&tp_tx_stop_time) -
++			timeval_to_ns_compat(&tp_tx_start_time);
+ 		sdiohal_info("tx->times(500c) is %lldns, tx %d, rx %d\n",
+ 			     times_count, tp_tx_cnt, rx_pop_cnt);
+ 		tp_tx_cnt = 0;
+@@ -577,8 +583,8 @@ int at_list_rx_pop(int channel, struct mbuf_t *head,
+ 		getnstimeofday(&now);
+ 		tp_rx_stop_time.tv_sec = now.tv_sec;
+ 		tp_rx_stop_time.tv_usec = now.tv_nsec/1000;
+-		times_count = timeval_to_ns(&tp_rx_stop_time)
+-			- timeval_to_ns(&tp_rx_start_time);
++		times_count = timeval_to_ns_compat(&tp_rx_stop_time)
++			- timeval_to_ns_compat(&tp_rx_start_time);
+ 		sdiohal_info("rx->times(%dc) is %lldns, tx %d, rx %d\n",
+ 			     tp_rx_cnt, times_count, tp_tx_cnt, rx_pop_cnt);
+ 		tp_rx_cnt = 0;

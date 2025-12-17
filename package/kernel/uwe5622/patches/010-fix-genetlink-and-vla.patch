@@ -1,0 +1,125 @@
+--- a/unisocwifi/npi.c
++++ b/unisocwifi/npi.c
+@@ -18,6 +18,13 @@
+ #include <linux/platform_device.h>
+ #include <linux/module.h>
+ #include <linux/uaccess.h>
++#include <uapi/linux/genetlink.h>
++
++/* Define missing constants for kernel 6.6 compatibility */
++#ifndef GENL_HDRLEN
++#define GENL_HDRLEN NLMSG_ALIGN(sizeof(struct genlmsghdr))
++#endif
++
+ #include <net/genetlink.h>
+ #include <linux/types.h>
+ #include <linux/version.h>
+--- a/unisocwifi/cmdevt.c
++++ b/unisocwifi/cmdevt.c
+@@ -724,13 +724,20 @@ int sprdwl_sync_version(struct sprdwl_priv *priv)
+ 	struct sprdwl_cmd_api_t *drv_api = NULL;
+ 	struct sprdwl_cmd_api_t *fw_api = NULL;
+ 	u16 r_len = sizeof(*fw_api);
+-	u8 r_buf[r_len];
++	/* Use kmalloc instead of VLA for kernel 6.6 */
++	u8 *r_buf;
+ 	int ret = 0;
+ 
++	r_buf = kmalloc(r_len, GFP_KERNEL);
++	if (!r_buf)
++		return -ENOMEM;
++
+ 	msg = sprdwl_cmd_getbuf(priv, sizeof(struct sprdwl_cmd_api_t),
+ 			SPRDWL_MODE_NONE, SPRDWL_HEAD_RSP,
+ 			WIFI_CMD_SYNC_VERSION);
+-	if (!msg)
++	if (!msg) {
++		kfree(r_buf);
+ 		return -ENOMEM;
++	}
+ 	drv_api = (struct sprdwl_cmd_api_t *)msg->data;
+ 	/*fill drv api version got from local*/
+ 	sprdwl_fill_drv_api_version(priv, drv_api);
+@@ -740,6 +747,7 @@ int sprdwl_sync_version(struct sprdwl_priv *priv)
+ 		fw_api = (struct sprdwl_cmd_api_t *)r_buf;
+ 		/*fill fw api version to priv got from firmware*/
+ 		sprdwl_fill_fw_api_version(priv, fw_api);
+ 	}
++	kfree(r_buf);
+ 	return ret;
+ }
+ 
+@@ -864,7 +872,8 @@ int sprdwl_get_fw_info(struct sprdwl_priv *priv)
+ 	struct sprdwl_tlv_data *tlv;
+ 	u16 r_len = sizeof(*p) + GET_INFO_TLV_RBUF_SIZE;
+ 	u16 r_len_ori = r_len;
+-	u8 r_buf[r_len];
++	/* Use kmalloc instead of VLA for kernel 6.6 */
++	u8 *r_buf;
+ #ifdef COMPAT_SAMPILE_CODE
+ 	u8 compat_ver = 0;
+ #endif
+@@ -886,11 +895,18 @@ int sprdwl_get_fw_info(struct sprdwl_priv *priv)
+ 	tlv_len += (sizeof(*tlv) + 1);
+ #endif
+ 
++	r_buf = kmalloc(r_len, GFP_KERNEL);
++	if (!r_buf)
++		return -ENOMEM;
++
+ 	msg = sprdwl_cmd_getbuf(priv, sizeof(*p) + tlv_len, SPRDWL_MODE_NONE,
+ 				SPRDWL_HEAD_RSP, WIFI_CMD_GET_INFO);
+-	if (!msg)
++	if (!msg) {
++		kfree(r_buf);
+ 		return -ENOMEM;
++	}
+ 	p = (struct sprdwl_cmd_fw_info *)msg->data;
++	memset(r_buf, 0, r_len);
+ 
+ 	/* set default values */
+ 	credit_via_data = 0;
+@@ -993,10 +1009,12 @@ int sprdwl_get_fw_info(struct sprdwl_priv *priv)
+ 	}
+ #endif
+ 
++	kfree(r_buf);
+ 	return ret;
+ }
+ 
+@@ -3728,18 +3746,26 @@ int sprdwl_set_packet_offload(struct sprdwl_priv *priv, u8 vif_ctx_id,
+ 	struct sprdwl_cmd_packet_offload *p;
+ 	struct sprdwl_cmd_packet_offload *packet = NULL;
+ 	u16 r_len = sizeof(*packet);
+-	u8 r_buf[r_len];
++	/* Use kmalloc instead of VLA for kernel 6.6 */
++	u8 *r_buf;
++	int ret;
++
++	r_buf = kmalloc(r_len, GFP_KERNEL);
++	if (!r_buf)
++		return -ENOMEM;
+ 
+ 	msg = sprdwl_cmd_getbuf(priv, sizeof(*p) + len, vif_ctx_id,
+ 				SPRDWL_HEAD_RSP, WIFI_CMD_PACKET_OFFLOAD);
+-	if (!msg)
++	if (!msg) {
++		kfree(r_buf);
+ 		return -ENOMEM;
++	}
+ 	p = (struct sprdwl_cmd_packet_offload *)msg->data;
+ 
+ 	p->enable = enable;
+ 	p->req_id = req;
+ 	if (enable) {
+ 		p->period = interval;
+ 		p->len = len;
+ 		memcpy(p->data, data, len);
+ 	}
+ 
+-	return sprdwl_cmd_send_recv(priv, msg, CMD_WAIT_TIMEOUT, r_buf, &r_len);
++	ret = sprdwl_cmd_send_recv(priv, msg, CMD_WAIT_TIMEOUT, r_buf, &r_len);
++	kfree(r_buf);
++	return ret;
+ }
+ 

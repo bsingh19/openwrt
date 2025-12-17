@@ -1,0 +1,34 @@
+--- a/unisocwcn/platform/wcn_boot.c
++++ b/unisocwcn/platform/wcn_boot.c
+@@ -325,7 +325,9 @@
+ #define AFC_CALI_READ_FINISH 0x12121212
+ #define WCN_AFC_CALI_PATH "/productinfo/wcn/tsx_bt_data.txt"
+ 
++#ifndef BIT
+ #define BIT(nr) (1UL << (nr))
++#endif
+ 
+ #ifdef CONFIG_WCN_DOWNLOAD_FIRMWARE_FROM_HEX
+ #define POWER_WQ_DELAYED_MS 0
+@@ -1383,8 +1385,7 @@ static int marlin_registsr_bt_wake(struct device *dev, struct device_node *np)
+ 		WCN_ERR("dts node for bt_wake not found");
+ 		return -EINVAL;
+ 	}
+-	bt_wake_host_gpio = of_get_named_gpio_flags(np, "bt_hostwake", 0,
+-		(enum of_gpio_flags *)&config);
++	bt_wake_host_gpio = of_get_named_gpio(np, "bt_hostwake", 0);
+ 	if (!gpio_is_valid(bt_wake_host_gpio)) {
+ 		WCN_ERR("bt_hostwake irq is invalid: %d\n",
+ 			bt_wake_host_gpio);
+@@ -1453,9 +1454,9 @@ static void marlin_device_unregister(void)
+ static int marlin_parse_dt(struct platform_device *pdev)
+ {
+ #ifdef CONFIG_WCN_PARSE_DTS
+-	struct device_node *np = pdev->dev.of_node;
++	struct device_node *np __maybe_unused = pdev->dev.of_node;
+ #elif defined CONFIG_AW_BOARD
+-	struct device_node *np = NULL;
++	struct device_node *np __maybe_unused = NULL;
+ #endif
+ #ifdef CONFIG_WCN_PMIC
+ 	struct regmap *pmu_apb_gpr;
