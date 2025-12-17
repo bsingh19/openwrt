@@ -1,0 +1,47 @@
+--- a/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
++++ b/arch/arm64/boot/dts/allwinner/sun50i-h618-orangepi-zero3.dts
+@@ -13,6 +13,17 @@
+ 	compatible = "xunlong,orangepi-zero3", "allwinner,sun50i-h618";
+ };
+ 
++/ {
++	wifi_pwrseq: wifi-pwrseq {
++		compatible = "mmc-pwrseq-simple";
++		reset-gpios = <&pio 6 18 GPIO_ACTIVE_LOW>; /* PG18 WL-REG-ON */
++	};
++
++	unisoc_wifi: unisoc-wifi {
++		compatible = "unisoc,uwe_bsp";
++	};
++};
++
+ &cpu0 {
+ 	cpu-supply = <&reg_dcdc2>;
+ };
+@@ -37,6 +48,26 @@
+ 	vmmc-supply = <&reg_dldo1>;
+ };
+ 
++&mmc1 {
++	vmmc-supply = <&reg_dldo1>;
++	vqmmc-supply = <&reg_aldo1>;
++	mmc-pwrseq = <&wifi_pwrseq>;
++	bus-width = <4>;
++	non-removable;
++	mmc-ddr-1_8v;
++	status = "okay";
++
++	uwe5622: sdio-wifi@1 {
++		compatible = "unisoc,uwe5622";
++		reg = <1>;
++		bus-width = <4>;
++
++		interrupts = <&pio 6 15 IRQ_TYPE_LEVEL_HIGH>; /* PG15 WL-WAKE-HOST */
++		interrupt-names = "host-wake";
++		keep-power-on;
++	};
++};
++
+ &r_i2c {
+ 	status = "okay";
+ 
