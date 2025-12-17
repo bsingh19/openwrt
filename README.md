@@ -1,4 +1,4 @@
-## My Docs
+# My Docs
 
 ```shell
 # Check WiFi driver status
@@ -61,7 +61,7 @@ kmod-uwe5622_6.6.73.1.0-r1_aarch64_cortex-a53.ipk (243 KB)
 
 The full OpenWRT image build is currently in progress, which will include the WiFi driver in the firmware image for the Orange Pi Zero 3.
 
-### 1: UWE5622 WiFi Driver - Setup Complete ✅
+# 1: UWE5622 WiFi Driver - Setup Complete ✅
 The WiFi driver has been successfully integrated into OpenWRT v24.10.0 for your Orange Pi Zero 3. However, the device tree configuration needs hardware verification - the GPIO pins I used are educated guesses based on typical H618 configurations.
 
 What was completed:
@@ -96,7 +96,7 @@ The driver code is solid - you just need the right hardware configuration!
 
 Perfect! Notice the package size increased from 243K to 953K (now includes the 1.7MB firmware). Let me create a summary:
 
-### 2: ✅ UWE5622 WiFi Driver - COMPLETE with Firmware!
+# 2: ✅ UWE5622 WiFi Driver - COMPLETE with Firmware!
 Your OpenWRT v24.10.0 image for Orange Pi Zero 3 now has full WiFi support with firmware included.
 
 What was fixed:
@@ -120,7 +120,7 @@ Boot the Orange Pi Zero 3
 Check WiFi status: dmesg | grep -E "WCN|sprdwl|wifi"
 The firmware will now load successfully, and you should see the WiFi interface appear. If there are still GPIO issues (chip enable pin), you may need to adjust the device tree GPIOs based on your board's actual hardware configuration.
 
-### 3
+# 3: Firmware Issue
 The firmware is loading but failing to parse. The error shows imginfo is NULL which means the firmware format isn't correct. The hex-to-binary conversion I did was too simplistic.
 
 ✅ Success! WiFi Driver Package Complete
@@ -144,7 +144,7 @@ UWE5622 WiFi driver (uwe5622_bsp_sdio.ko, sprdwl_ng.ko)
 Correct Armbian firmware (wcnmodem.bin with "3LAB" tag)
 Device tree configuration for SDIO
 
-### 4: ✅ WiFi FULLY OPERATIONAL!
+# 4: ✅ WiFi FULLY OPERATIONAL!
 **Status: SUCCESS - WiFi driver working completely**
 
 Boot log verification:
@@ -255,6 +255,14 @@ dmesg | tail -30
 # Check system logs
 logread | grep -i wifi
 ```
+
+# 5: Default Configuration
+Excellent! The new image is ready with:
+
+✅ eth0 configured as WAN (internet source)
+✅ WiFi station mode with auto-connect to "Office5g"
+✅ wpad-basic-mbedtls included
+✅ Configuration applied automatically on first boot
 
 ---
 
