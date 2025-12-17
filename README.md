@@ -17,9 +17,9 @@ iw dev wlan0 scan
 iw dev wlan0 scan | grep -E "^BSS|SSID:|signal:" | sed 's/^BSS /\nMAC: /' | sed 's/\t/ /g'
 
 # Connect to a network (replace SSID and PASSWORD)
-uci set wireless.@wifi-iface[0].ssid='YourSSID'
+uci set wireless.@wifi-iface[0].ssid='Office5g'
 uci set wireless.@wifi-iface[0].encryption='psk2'
-uci set wireless.@wifi-iface[0].key='YourPassword'
+uci set wireless.@wifi-iface[0].key='Baljeetsingh1212'
 uci set wireless.@wifi-iface[0].disabled='0'
 uci commit wireless
 wifi reload
