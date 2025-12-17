@@ -34,7 +34,7 @@ define KernelPackage/uwe5622
 	$(PKG_BUILD_DIR)/unisocwcn/uwe5622_bsp_sdio.ko \
 	$(PKG_BUILD_DIR)/unisocwifi/sprdwl_ng.ko
 #	$(PKG_BUILD_DIR)/tty-sdio/sprdbt_tty.ko
-  AUTOLOAD:=$(call AutoProbe,uwe5622_bsp_sdio sprdwl_ng)
+#  AUTOLOAD:=$(call AutoProbe,uwe5622_bsp_sdio sprdwl_ng)
 endef
 
 define KernelPackage/uwe5622/description
