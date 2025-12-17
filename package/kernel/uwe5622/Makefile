@@ -76,4 +76,10 @@ define Build/Compile
 		modules
 endef
 
+define KernelPackage/uwe5622/install
+	$(INSTALL_DIR) $(1)/lib/firmware
+	$(INSTALL_DATA) ./files/lib/firmware/wcnmodem.bin $(1)/lib/firmware/
+	$(INSTALL_DATA) ./files/lib/firmware/wifi_2355b001_1ant.ini $(1)/lib/firmware/
+endef
+
 $(eval $(call KernelPackage,uwe5622))
