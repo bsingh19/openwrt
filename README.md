@@ -23,6 +23,16 @@ uci set wireless.@wifi-iface[0].key='Baljeetsingh1212'
 uci set wireless.@wifi-iface[0].disabled='0'
 uci commit wireless
 wifi reload
+
+# Check connection status
+iw dev wlan0 link                    # Shows current connection
+iw dev wlan0 info                    # Shows interface details
+ip addr show wlan0                   # Shows IP address if connected
+ping -c 4 8.8.8.8                    # Test internet connectivity
+
+# Monitor connection in real-time
+dmesg | tail -30                     # Check recent kernel messages
+logread | grep -i wifi               # Check system logs
 ```
 
 ## Summary
@@ -165,6 +175,88 @@ Firmware images (MD5: 9ba0542efe16a1d086597584b95343c7):
 
 **WiFi is ready to use! Connect to networks via LuCI or command line.**
 
+---
+
+## WiFi Station Mode Configuration
+
+### Check Current Configuration
+```bash
+# View current wireless configuration
+uci show wireless
+
+# List available networks
+iw dev wlan0 scan | grep -E 'SSID|signal'
+```
+
+### Configure WiFi Station (Client) Mode
+```bash
+# Configure the radio (adjust channel if needed)
+uci set wireless.radio0.disabled='0'
+uci set wireless.radio0.country='US'
+uci set wireless.radio0.channel='auto'
+
+# Configure the wireless interface for station mode
+uci set wireless.@wifi-iface[0].device='radio0'
+uci set wireless.@wifi-iface[0].mode='sta'
+uci set wireless.@wifi-iface[0].network='wwan'
+uci set wireless.@wifi-iface[0].ssid='YourSSID'
+uci set wireless.@wifi-iface[0].encryption='psk2'
+uci set wireless.@wifi-iface[0].key='YourPassword'
+uci set wireless.@wifi-iface[0].disabled='0'
+
+# Create network interface for WWAN
+uci set network.wwan=interface
+uci set network.wwan.proto='dhcp'
+
+# Commit and reload
+uci commit wireless
+uci commit network
+wifi reload
+/etc/init.d/network reload
+```
+
+### Alternative: Quick Connect with WPA Supplicant
+```bash
+# Create wpa_supplicant config
+cat > /tmp/wpa_supplicant.conf << 'EOF'
+network={
+    ssid="YourSSID"
+    psk="YourPassword"
+    key_mgmt=WPA-PSK
+}
+EOF
+
+# Connect
+wpa_supplicant -B -i wlan0 -c /tmp/wpa_supplicant.conf -D nl80211
+sleep 5
+udhcpc -i wlan0
+```
+
+### Connection Testing
+
+After configuring WiFi, verify the connection:
+
+```bash
+# Check connection status
+iw dev wlan0 link
+
+# Check interface details
+iw dev wlan0 info
+
+# Check IP address
+ip addr show wlan0
+
+# Test internet connectivity
+ping -c 4 8.8.8.8
+
+# Check kernel messages
+dmesg | tail -30
+
+# Check system logs
+logread | grep -i wifi
+```
+
+---
 
 ![OpenWrt logo](include/logo.png)
 
