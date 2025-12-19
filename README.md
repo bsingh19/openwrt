@@ -7,6 +7,11 @@
 - UWE5622 driver loaded (check with `lsmod | grep sprdwl`)
 - Interface wlan0 exists (check with `ip link show wlan0`)
 
+**Clean and Build**
+```bash
+make target/linux/clean && make -j$(nproc) V=99
+``` 
+
 **Manual Connection (Works reliably):**
 ```bash
 # 1. Bring up wlan0 interface
