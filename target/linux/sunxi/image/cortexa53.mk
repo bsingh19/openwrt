@@ -130,7 +130,7 @@ TARGET_DEVICES += xunlong_orangepi-zero2
 define Device/xunlong_orangepi-zero3
   DEVICE_VENDOR := Xunlong
   DEVICE_MODEL := Orange Pi Zero 3
-  DEVICE_PACKAGES := kmod-uwe5622
+  DEVICE_PACKAGES := kmod-uwe5622 kmod-hello-world wpad-basic-mbedtls
   $(Device/sun50i-h618)
 endef
 TARGET_DEVICES += xunlong_orangepi-zero3
