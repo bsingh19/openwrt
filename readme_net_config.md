@@ -240,7 +240,7 @@ Create WPA supplicant configuration:
 cat > /tmp/wpa.conf << 'EOF'
 network={
     ssid="CEMSI"
-    psk="$v7akng9!$"
+    psk="$v7akng9!"
 }
 EOF
 ```
@@ -255,6 +255,10 @@ EOF
 ```bash
 killall wpad 2>/dev/null
 /usr/sbin/wpad wpa_supplicant -B -i wlan0 -c /tmp/wpa.conf -D nl80211
+
+## Debug Mode
+/usr/sbin/wpad wpa_supplicant -i wlan0 -c /tmp/wpa.conf -D nl802
+
 ```
 
 Wait 10 seconds for connection:
