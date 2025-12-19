@@ -491,3 +491,71 @@ When fully working:
 - **Latency:** 40-50ms to internet
 - **Throughput:** 10-50 Mbps typical (depends on signal)
 - **Frequency:** 2.4GHz only (5GHz not supported by UWE5622)
+
+
+# AP Mode
+
+```bash
+# 1. Stop any running wpa_supplicant
+killall wpad 2>/dev/null
+
+# 2. Create hostapd config
+cat > /tmp/hostapd.conf << 'EOF'
+interface=wlan0
+driver=nl80211
+ssid=OpenWrt-Test
+hw_mode=g
+channel=6
+wmm_enabled=1
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_passphrase=testpassword123
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
+EOF
+
+# 3. Bring up wlan0
+ip link set wlan0 up
+
+# 4. Start hostapd
+/usr/sbin/wpad hostapd -B /tmp/hostapd.conf
+
+# 5. Assign IP to wlan0
+ip addr add 192.168.10.1/24 dev wlan0
+
+# 6. Start DHCP server (if dnsmasq not running)
+dnsmasq -i wlan0 --dhcp-range=192.168.10.100,192.168.10.200,12h
+
+# If not then Check if hostapd process is running
+ps | grep hostapd
+
+# Check recent hostapd logs (not just errors)
+logread | grep hostapd | tail -30
+
+# Try starting hostapd in foreground to see errors
+killall wpad 2>/dev/null
+/usr/sbin/wpad hostapd /tmp/hostapd.conf
+
+## Properly with DHCP:
+
+# Run hostapd in background
+/usr/sbin/wpad hostapd -B /tmp/hostapd.conf
+
+# Configure IP and DHCP
+ip addr add 192.168.10.1/24 dev wlan0
+
+# Stop existing dnsmasq
+/etc/init.d/dnsmasq stop
+
+# Start dnsmasq for wlan0
+dnsmasq -i wlan0 --dhcp-range=192.168.10.100,192.168.10.200,12h --interface=wlan0 --bind-interfaces
+
+# Enable IP forwarding (for internet sharing)
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+# NAT for internet sharing (if you want to share eth0 internet)
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+```
