@@ -23,8 +23,8 @@ iw dev wlan0 scan | grep -E "^BSS|SSID:|signal:"
 # 3. Create WPA supplicant config
 cat > /tmp/wpa.conf << 'EOF'
 network={
-    ssid="YourNetworkName"
-    psk="YourPassword"
+    ssid="CEMSI"
+    psk="$v7akng9!$"
 }
 EOF
 
