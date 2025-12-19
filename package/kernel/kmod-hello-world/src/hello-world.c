@@ -5,7 +5,6 @@
 static int __init hello_init(void)
 {
 	pr_info("===== HELLO WORLD MODULE LOADED =====\n");
-	pr_info("===== BUILD TIME: %s %s =====\n", __DATE__, __TIME__);
 	pr_info("===== TEST: OpenWrt Build Verification =====\n");
 	return 0;
 }
