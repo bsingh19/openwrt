@@ -1,28 +1,141 @@
-## My Docs
+## ✅ WiFi Station Mode - WORKING SOLUTION
 
-```shell
-# Check WiFi driver status
-dmesg | grep -E "WCN|sprdwl|wifi"
+### Quick Reference: Connect to WiFi Network
 
-# Check WiFi interface
-ip link show wlan0
+**Prerequisites:**
+- OpenWrt image must include `wpad-basic-mbedtls` package
+- UWE5622 driver loaded (check with `lsmod | grep sprdwl`)
+- Interface wlan0 exists (check with `ip link show wlan0`)
 
-# Bring up WiFi interface (may show harmless MAC address warning)
+**Manual Connection (Works reliably):**
+```bash
+# 1. Bring up wlan0 interface
 ip link set wlan0 up
 
-# Scan for networks (full details)
-iw dev wlan0 scan
+# 2. Scan for available networks
+iw dev wlan0 scan | grep -E "^BSS|SSID:|signal:"
 
-# Scan with only network names and signal strength
-iw dev wlan0 scan | grep -E "^BSS|SSID:|signal:" | sed 's/^BSS /\nMAC: /' | sed 's/\t/ /g'
+# 3. Create WPA supplicant config
+cat > /tmp/wpa.conf << 'EOF'
+network={
+    ssid="YourNetworkName"
+    psk="YourPassword"
+}
+EOF
 
-# Connect to a network (replace SSID and PASSWORD)
-uci set wireless.@wifi-iface[0].ssid='YourSSID'
-uci set wireless.@wifi-iface[0].encryption='psk2'
-uci set wireless.@wifi-iface[0].key='YourPassword'
-uci set wireless.@wifi-iface[0].disabled='0'
-uci commit wireless
-wifi reload
+# 4. Start wpa_supplicant via wpad
+killall wpad 2>/dev/null
+/usr/sbin/wpad wpa_supplicant -B -i wlan0 -c /tmp/wpa.conf -D nl80211
+
+# 5. Wait for connection (10 seconds)
+sleep 10
+
+# 6. Verify connection
+iw dev wlan0 link
+
+# 7. Get IP address via DHCP
+udhcpc -i wlan0
+
+# 8. Test internet connectivity
+ping -c 3 8.8.8.8
+```
+
+**Example working connection:**
+```
+root@OpenWrt:~# iw dev wlan0 link
+Connected to 48:a9:8a:80:bd:06 (on wlan0)
+        SSID: CEMSI
+        freq: 2432.0
+        signal: -31 dBm
+        tx bitrate: 135.0 MBit/s
+
+root@OpenWrt:~# ip addr show wlan0
+3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500
+    link/ether e0:51:d8:21:48:04 brd ff:ff:ff:ff:ff:ff
+    inet 172.16.0.228/24 brd 172.16.0.255 scope global wlan0
+
+root@OpenWrt:~# ping -c 3 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: seq=0 ttl=111 time=42.666 ms
+64 bytes from 8.8.8.8: seq=1 ttl=111 time=46.843 ms
+64 bytes from 8.8.8.8: seq=2 ttl=111 time=46.788 ms
+ip addr show wlan0
+```
+
+## Key Findings & Troubleshooting
+
+### Critical Requirements for UWE5622 WiFi
+
+1. **wpad-basic-mbedtls package is mandatory**
+   - Without it, wpa_supplicant doesn't exist
+   - OpenWrt wireless config will fail silently
+   - Add to device profile: `DEVICE_PACKAGES := kmod-uwe5622 wpad-basic-mbedtls`
+
+2. **Correct PHY path is essential**
+   - Actual path: `platform/unisoc_wifi`
+   - NOT: `platform/soc/unisoc_wifi/unisoc_wifi wlan0`
+   - Verify with: `ls -la /sys/class/ieee80211/phy0/device`
+
+3. **Driver limitations**
+   - UWE5622 driver doesn't support all mac80211 nl80211 operations
+   - Some OpenWrt wireless scripts fail with "Not supported (-95)" errors
+   - Manual wpa_supplicant works reliably, UCI wireless config is problematic
+
+4. **Network must be accessible during testing**
+   - Without ethernet connected, system may appear to hang
+   - The hang is due to network stack issues, not WiFi driver failure
+   - Always test with ethernet cable connected first
+
+### Common Issues and Solutions
+
+**Problem: "ip link show" hangs or gets stuck**
+- **Cause:** System tested without ethernet, network stack unresponsive
+- **Solution:** Connect ethernet cable, system becomes responsive immediately
+
+**Problem: "wpa_supplicant: not found"**
+- **Cause:** wpad-basic-mbedtls package not installed
+- **Solution:** Add to firmware build or install via opkg (requires internet)
+
+**Problem: "Phy not found" in netifd logs**
+- **Cause:** Wrong wireless device path in UCI config
+- **Solution:** Use `uci set wireless.radio0.path='platform/unisoc_wifi'`
+
+**Problem: WiFi scans work but won't connect**
+- **Cause:** netifd wireless scripts incompatible with UWE5622 driver
+- **Solution:** Use manual wpad wpa_supplicant method (see above)
+
+**Problem: Firewall blocks WiFi access**
+- **Cause:** wwan interface in WAN firewall zone by default
+- **Solution:** `iptables -I INPUT -i wlan0 -j ACCEPT` or move to LAN zone
+
+### Diagnostic Commands
+
+```bash
+# Check driver loaded
+lsmod | grep -E "sprdwl|uwe5622"
+dmesg | grep -E "WCN|sprdwl|unisoc" | tail -30
+
+# Verify interface exists
+ip link show wlan0
+iw dev wlan0 info
+
+# Check PHY and device path
+ls -la /sys/class/ieee80211/
+ls -la /sys/class/ieee80211/phy0/device
+
+# Test scanning (verifies driver functional)
+iw dev wlan0 scan | grep -E "^BSS|SSID:|signal:"
+
+# Check wpad installed
+which wpa_supplicant
+opkg list-installed | grep wpad
+
+# View wireless configuration
+uci show wireless
+cat /etc/config/wireless
+
+# Monitor connection logs
+logread -f | grep -i -E "wpa|wlan0|radio0"
 ```
 
 ## Summary
@@ -134,36 +247,61 @@ UWE5622 WiFi driver (uwe5622_bsp_sdio.ko, sprdwl_ng.ko)
 Correct Armbian firmware (wcnmodem.bin with "3LAB" tag)
 Device tree configuration for SDIO
 
-### 4: ✅ WiFi FULLY OPERATIONAL!
-**Status: SUCCESS - WiFi driver working completely**
+### 4: ✅ WiFi Station Mode FULLY OPERATIONAL!
 
-Boot log verification:
+**Final Status: SUCCESS - WiFi client connection working**
+
+**Verified working configuration:**
+- **Hardware:** Orange Pi Zero 3 (Allwinner H618)
+- **WiFi Chip:** UWE5622 / Unisoc Marlin3L AB (0x2355b001)
+- **Driver:** sprdwl_ng.ko + uwe5622_bsp_sdio.ko
+- **Firmware:** wcnmodem.bin (1.7MB, version 38222 from Armbian)
+- **Config:** wifi_2355b001_1ant.ini (1-antenna configuration)
+- **OpenWrt:** v24.10.0 (kernel 6.6.73)
+
+**Boot log verification:**
 ```
+[   18.143092] unisoc_wifi unisoc_wifi wlan0: mixed HW and IP checksum settings.
 [   19.311956] wifi ini path = /lib/firmware/wifi_2355b001_1ant.ini
 [   19.342611] sprdwl:sprdwl_get_fw_info, drv_version=1, fw_version=2
 [   19.357131] sprdwl:chip_model:0x2355, chip_ver:0x0
 [   19.361912] sprdwl:fw_ver:38222, fw_std:0x7f, fw_capa:0x120fff
 [   19.367738] sprdwl:mac_addr:e0:51:d8:21:48:04
-[   19.413816] unisoc_wifi unisoc_wifi wlan0: mixed HW and IP checksum settings.
 ```
 
-Final deliverables:
-✅ **wlan0 interface created successfully**
-✅ MAC Address: `e0:51:d8:21:48:04`
-✅ Firmware version: 38222 (Armbian)
-✅ Chip: 0x2355b001 (Marlin3L AB)
+**Tested and verified:**
+✅ Driver loads successfully at boot
+✅ wlan0 interface created (MAC: e0:51:d8:21:48:04)
+✅ Network scanning works (`iw dev wlan0 scan`)
+✅ WPA2 connection established
+✅ DHCP IP acquisition successful
+✅ Internet connectivity confirmed (ping 8.8.8.8)
+✅ High speed: 135 Mbps @ 40MHz MCS 7
+✅ Strong signal: -31 dBm (excellent)
 
-Package contents:
-- `wcnmodem.bin` (1.7M) - Firmware with "3LAB" tag from Armbian
-- `wifi_2355b001_1ant.ini` (6.6K) - WiFi configuration for 1-antenna
-- `uwe5622_bsp_sdio.ko` - BSP driver
-- `sprdwl_ng.ko` - WiFi driver
+**Build requirements:**
+```makefile
+# In target/linux/sunxi/image/cortexa53.mk
+define Device/xunlong_orangepi-zero3
+  DEVICE_VENDOR := Xunlong
+  DEVICE_MODEL := Orange Pi Zero 3
+  DEVICE_PACKAGES := kmod-uwe5622 wpad-basic-mbedtls
+  $(Device/sun50i-h618)
+endef
+```
 
-Firmware images (MD5: 9ba0542efe16a1d086597584b95343c7):
-- `openwrt-sunxi-cortexa53-xunlong_orangepi-zero3-squashfs-sdcard.img.gz` (11M)
-- `openwrt-sunxi-cortexa53-xunlong_orangepi-zero3-ext4-sdcard.img.gz` (12M)
+**Package files in firmware:**
+- `/lib/modules/6.6.73/uwe5622_bsp_sdio.ko` - BSP/SDIO driver (1.3MB)
+- `/lib/modules/6.6.73/sprdwl_ng.ko` - WiFi mac80211 driver (2.6MB)  
+- `/lib/firmware/wcnmodem.bin` - Firmware blob (1.7MB)
+- `/lib/firmware/wifi_2355b001_1ant.ini` - RF calibration (6.6KB)
+- `/usr/sbin/wpad` - WPA supplicant/hostapd (wpad-basic-mbedtls)
 
-**WiFi is ready to use! Connect to networks via LuCI or command line.**
+**Known limitations:**
+- OpenWrt UCI wireless config has compatibility issues with UWE5622 driver
+- Manual wpa_supplicant connection required for reliable operation
+- Some nl80211 operations return "Not supported (-95)" 
+- Auto-connect on boot needs custom init script
 
 
 ![OpenWrt logo](include/logo.png)
