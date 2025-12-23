@@ -13,6 +13,13 @@ This guide explains how to configure your Orange Pi Zero 3 running OpenWrt to us
 cat /etc/config/network
 ```
 
+```bash
+# Disable Wi-Fi
+uci set wireless.@wifi-device[0].disabled='1'
+uci commit wireless
+wifi reload
+```
+
 **Correct config for WAN (Ethernet):**
 ```
 config interface 'loopback'
