@@ -1,0 +1,10 @@
+--- a/unisocwifi/cmdevt.c
++++ b/unisocwifi/cmdevt.c
+@@ -3432,6 +3432,6 @@ void sprdwl_event_chan_changed(struct sprdwl_vif *vif,
+			cfg80211_chandef_create(&chandef, ch,
+						NL80211_CHAN_HT20);
+		else
+			wl_err("%s, ch is null!\n", __func__);
+-		cfg80211_ch_switch_notify(vif->ndev, &chandef,0);
++		cfg80211_ch_switch_notify(vif->ndev, &chandef, 0, true);
+ 

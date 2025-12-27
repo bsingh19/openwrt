@@ -18,6 +18,16 @@ cat /etc/config/network
 uci set wireless.@wifi-device[0].disabled='1'
 uci commit wireless
 wifi reload
+
+[   17.861549] wifi ini path = /lib/firmware/wifi_2355b001_1ant.ini
+[   17.892116] sprdwl:sprdwl_get_fw_info length mismatch: len_count=83, r_len=89
+[   17.899261] sprdwl:sprdwl_get_fw_info, drv_version=1, fw_version=2, compat_ver=0
+[   17.906649] sprdwl:chip_model:0x2355, chip_ver:0x0
+[   17.911432] sprdwl:fw_ver:38222, fw_std:0x7f, fw_capa:0x120fff
+[   17.917258] sprdwl:mac_addr:e0:51:d8:21:48:04
+[   17.921609] sprdwl:credit_capa:TX_WITH_CREDIT
+[   17.925974] sprdwl:ott support:0
+
 ```
 
 **Correct config for WAN (Ethernet):**

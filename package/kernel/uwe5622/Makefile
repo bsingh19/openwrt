@@ -29,7 +29,7 @@ include $(INCLUDE_DIR)/package.mk
 define KernelPackage/uwe5622
   SUBMENU:=Wireless Drivers
   TITLE:=UWE5622 (AW859A) WiFi and Bluetooth Driver
-  DEPENDS:=+kmod-mmc +kmod-cfg80211 @TARGET_sunxi_cortexa53
+  DEPENDS:=+kmod-mmc +kmod-cfg80211 +kmod-mac80211 @TARGET_sunxi_cortexa53
   FILES:= \
 	$(PKG_BUILD_DIR)/unisocwcn/uwe5622_bsp_sdio.ko \
 	$(PKG_BUILD_DIR)/unisocwifi/sprdwl_ng.ko
@@ -51,12 +51,7 @@ endef
 NOSTDINC_FLAGS:= \
 	$(KERNEL_NOSTDINC_FLAGS) \
 	-I$(PKG_BUILD_DIR) \
-	-I$(PKG_BUILD_DIR)/unisocwcn/include \
-	-I$(STAGING_DIR)/usr/include/mac80211-backport/uapi \
-	-I$(STAGING_DIR)/usr/include/mac80211-backport \
-	-I$(STAGING_DIR)/usr/include/mac80211/uapi \
-	-I$(STAGING_DIR)/usr/include/mac80211 \
-	-include backport/backport.h
+	-I$(PKG_BUILD_DIR)/unisocwcn/include
 
 MAKE_FLAGS+= \
 	CONFIG_AW_WIFI_DEVICE_UWE5622=y \
