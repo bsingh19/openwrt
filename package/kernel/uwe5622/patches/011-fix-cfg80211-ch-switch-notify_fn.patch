@@ -1,6 +1,6 @@
 --- a/unisocwifi/cmdevt.c
 +++ b/unisocwifi/cmdevt.c
-@@ -3427,7 +3427,7 @@
+@@ -3436,7 +3436,7 @@
  		else
  			wl_err("%s, ch is null!\n", __func__);
 -		cfg80211_ch_switch_notify(vif->ndev, &chandef,0);

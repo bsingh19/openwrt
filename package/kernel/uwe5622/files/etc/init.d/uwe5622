@@ -1,0 +1,39 @@
+#!/bin/sh /etc/rc.common
+# UWE5622 WiFi/BT initialization script
+# Based on Armbian implementation
+
+START=19
+STOP=91
+
+USE_PROCD=1
+
+start_service() {
+	# Load modules in correct order
+	modprobe uwe5622_bsp_sdio 2>/dev/null
+	sleep 1
+	modprobe sprdwl_ng 2>/dev/null
+	sleep 1
+	modprobe sprdbt_tty 2>/dev/null
+	
+	# Set WiFi interface up
+	if [ -e /sys/class/net/wlan0 ]; then
+		ip link set wlan0 up
+	fi
+	
+	logger -t uwe5622 "UWE5622 WiFi/BT driver loaded successfully"
+}
+
+stop_service() {
+	# Unload modules in reverse order
+	rmmod sprdbt_tty 2>/dev/null
+	rmmod sprdwl_ng 2>/dev/null
+	rmmod uwe5622_bsp_sdio 2>/dev/null
+	
+	logger -t uwe5622 "UWE5622 WiFi/BT driver unloaded"
+}
+
+restart() {
+	stop
+	sleep 2
+	start
+}
