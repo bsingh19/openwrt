@@ -1,0 +1,33 @@
+--- a/unisocwifi/cfg80211.c
++++ b/unisocwifi/cfg80211.c
+@@ -2260,10 +2260,8 @@
+ 
+ 	if (vif->beacon_loss) {
+-		bss = cfg80211_get_bss(wiphy, NULL, vif->bssid,
+-				     vif->ssid, vif->ssid_len,
+-				     WLAN_CAPABILITY_ESS,
+-				     WLAN_CAPABILITY_ESS);
++		/* cfg80211_get_bss no longer exported - disable feature */
++		bss = NULL;
+ 		if (bss) {
+ 			cfg80211_unlink_bss(wiphy, bss);
+ 			wl_ndev_log(L_DBG, vif->ndev,
+--- a/unisocwifi/rtt.c
++++ b/unisocwifi/rtt.c
+@@ -203,15 +203,8 @@
+ 		channel = chan->hw_value;
+ 	} else {
+-		bss = cfg80211_get_bss(wiphy, NULL, mac_addr,
+-				     NULL, 0, WLAN_CAPABILITY_ESS,
+-				     WLAN_CAPABILITY_ESS);
+-		if (!bss) {
+-			wl_err("Unable to find BSS\n");
+-			return 0;
+-		}
+-		channel = bss->channel->hw_value;
+-		cfg80211_put_bss(wiphy, bss);
++		/* cfg80211_get_bss no longer exported - disable RTT */
++		return 0;
+ 	}
+ 
+ 	status = sprdwl_send_ftm_cmd(priv, vif->mode, (u8 *)(&para), cmd_len,
