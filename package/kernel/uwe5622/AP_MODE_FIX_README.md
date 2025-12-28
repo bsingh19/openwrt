@@ -25,7 +25,24 @@ Instead of using patches (which proved difficult with the upstream repository), 
 
 ### Changes Made
 
-#### 1. **Makefile Configuration** ([package/kernel/uwe5622/Makefile](package/kernel/uwe5622/Makefile))
+#### 1. **Network Interface Carrier State Fix** ([uwe5622-source/unisocwifi/main.c](uwe5622-source/unisocwifi/main.c))
+
+**In `sprdwl_open()` function:**
+```c
+static int sprdwl_open(struct net_device *ndev)
+{
+	wl_ndev_log(L_DBG, ndev, "%s\n", __func__);
+	/* Always start with carrier off until connected */
+	netif_carrier_off(ndev);
+	
+	netif_start_queue(ndev);
+	
+	return 0;
+}
+```
+**Why:** With DFS_MASTER disabled, the original `#ifdef DFS_MASTER` block was skipped, leaving the interface in carrier-on state during initialization. This can cause the networking stack to attempt to use the interface before it's properly connected, potentially causing hangs during interface queries (`ip a` command).
+
+#### 2. **Makefile Configuration** ([package/kernel/uwe5622/Makefile](package/kernel/uwe5622/Makefile))
 ```makefile
 # Enable SCC mode
 UNISOC_STA_SOFTAP_SCC_MODE=y
