@@ -1,0 +1,26 @@
+--- a/unisocwifi/cfg80211.c
++++ b/unisocwifi/cfg80211.c
+@@ -276,7 +276,7 @@ static const struct ieee80211_iface_lim
+ 	{
+ 		.max = 1,
+ 		.types = BIT(NL80211_IFTYPE_STATION) |
+-			 BIT(NL80211_IFTYPE_AP)
++			 BIT(NL80211_IFTYPE_AP),
+ 	},
+ 	{
+ 		.max = 1,
+@@ -295,7 +295,11 @@ static const struct ieee80211_iface_com
+ #ifndef CONFIG_P2P_INTF
+ 		 .max_interfaces = 3,
+ #else
+ 		 .max_interfaces = 2,
+ #endif
+-		 .num_different_channels = 2,
++#ifdef STA_SOFTAP_SCC_MODE
++		 .num_different_channels = 1,
++#else
++		 .num_different_channels = 1,
++#endif
+ 		 .n_limits = ARRAY_SIZE(sprdwl_iface_limits),
+ 		 .limits = sprdwl_iface_limits
+ 	}
