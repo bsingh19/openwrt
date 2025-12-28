@@ -62,7 +62,8 @@ MAKE_FLAGS+= \
 	CONFIG_AW_WIFI_DEVICE_UWE5622=y \
 	CONFIG_WLAN_UWE5622=y \
 	CONFIG_TTY_OVERY_SDIO=y \
-	KCFLAGS="-Wno-error=implicit-fallthrough -Wno-error=attribute-warning"
+	UNISOC_STA_SOFTAP_SCC_MODE=y \
+	KCFLAGS="-Wno-error=implicit-fallthrough -Wno-error=attribute-warning -DDFS_MASTER"
 
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
@@ -72,7 +73,8 @@ define Build/Compile
 		CONFIG_AW_WIFI_DEVICE_UWE5622=y \
 		CONFIG_WLAN_UWE5622=y \
 		CONFIG_TTY_OVERY_SDIO=y \
-		KCFLAGS="-Wno-error=implicit-fallthrough -Wno-error=attribute-warning" \
+		UNISOC_STA_SOFTAP_SCC_MODE=y \
+		KCFLAGS="-Wno-error=implicit-fallthrough -Wno-error=attribute-warning -DDFS_MASTER" \
 		modules
 endef
 
