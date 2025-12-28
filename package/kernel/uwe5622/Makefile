@@ -10,15 +10,10 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=uwe5622
 PKG_VERSION:=1.0
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/Ran-Thegoth/uwe5622.git
-PKG_SOURCE_VERSION:=ca207454402d215d676dc0eeba54c2b99245bff9
-PKG_MIRROR_HASH:=de27a8f18e28e8a339c448f222a0206d450f69280568e05f8eb495fd65c2c396
-
-PKG_LICENSE:=GPL-2.0
-PKG_LICENSE_FILES:=
+PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_FLAGS:=nonshared
 
 PKG_MAINTAINER:=OpenWrt Community
 
@@ -63,7 +58,12 @@ MAKE_FLAGS+= \
 	CONFIG_WLAN_UWE5622=y \
 	CONFIG_TTY_OVERY_SDIO=y \
 	UNISOC_STA_SOFTAP_SCC_MODE=y \
-	KCFLAGS="-Wno-error=implicit-fallthrough -Wno-error=attribute-warning -DDFS_MASTER"
+	KCFLAGS="-Wno-error=implicit-fallthrough -Wno-error=attribute-warning"
+
+define Build/Prepare
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)
+	$(CP) ./uwe5622-source/* $(PKG_BUILD_DIR)/
+endef
 
 define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
@@ -74,7 +74,7 @@ define Build/Compile
 		CONFIG_WLAN_UWE5622=y \
 		CONFIG_TTY_OVERY_SDIO=y \
 		UNISOC_STA_SOFTAP_SCC_MODE=y \
-		KCFLAGS="-Wno-error=implicit-fallthrough -Wno-error=attribute-warning -DDFS_MASTER" \
+		KCFLAGS="-Wno-error=implicit-fallthrough -Wno-error=attribute-warning" \
 		modules
 endef
 
